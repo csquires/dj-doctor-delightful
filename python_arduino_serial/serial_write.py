@@ -15,8 +15,10 @@ class LightConnection:
 			self.send_rgb_values(rgb_values)
 			sleep(self.delay)
 
-dev = '/dev/ttyACM2'
-light_connection = LightConnection(dev)
+ports=serial.tools.list_ports.comports()
+p=ports[0]
+# dev = '/dev/ttyACM2'
+light_connection = LightConnection(p.device)
 
 num_lights = 48
 message = []
