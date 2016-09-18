@@ -1,13 +1,10 @@
 from __future__ import print_function
 
 import ftd2xx as FT
-
+import time
 import sys
 
-try:
-    import BaseHTTPServer as httpServer
-except:
-    import http.server as httpServer
+from image_data_sequence import ImageDataSequence
 
 crcTable = [
   0x0000,0x1021,0x2042,0x3063,0x4084,0x50A5,0x60C6,0x70E7,
@@ -71,6 +68,7 @@ class SensorInterface(object):
 
         self.sensor.setUSBParameters(8192)
         self.sensor.setLatencyTimer(2)
+
     def close(self):
         "Closes the connection to the sensor"
         if self.sensor:
@@ -98,6 +96,32 @@ class SensorInterface(object):
                         'cols' : cols,
                         'image' : pixels }
                 images.append(img)
+
+    def get_image_data_sequence(self,t):
+      """
+      Gets real time sequence of image data for t seconds
+
+      Args:
+        sensor: SensorInterface to read from
+        t: amount of time (in seconds) to gather images from sensor
+      Returns:
+        sequence of image data (includes timeStamp, sequence(??), rows, cols, and image)
+      """
+      initial_time = time.time()
+      image_data_sequence = []
+      while time.time() - initial_time < t:
+        images = self.getAllImages()
+        image_data_sequence.extend(images)
+
+      return ImageDataSequence(image_data_sequence)
+
+    def recordAndPlayback(self,t):
+      image_data_sequence = self.get_image_data_sequence(t)
+      image_data_sequence.show_images()
+
+    def record_to_file(self,filename,t):
+      image_data_sequence = self.get_image_data_sequence(t)
+      image_data_sequence.save_to_file(filename)
 
     def getPacket(self):
         while True:
