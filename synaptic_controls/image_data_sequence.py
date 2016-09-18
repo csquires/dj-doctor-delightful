@@ -12,10 +12,16 @@ class ImageDataSequence:
 		"""
 		images = map(lambda imageData: np.array(imageData["image"]), self.image_data_sequence)
 
-		baselined_images = images[0] - images
-		image_max_val = np.max(images)
-		image_min_val = np.min(images)
-		normalized_images = (images-image_min_val)/float(image_max_val-image_min_val)*255
+		if not images:
+			return []
+
+		baselined_images = images - images[0]
+		image_max_val = np.max(baselined_images)
+		image_min_val = np.min(baselined_images)
+		if image_max_val - image_min_val != 0:
+			normalized_images = (baselined_images-image_min_val)/float(image_max_val-image_min_val)*255
+		else:
+			normalized_images = np.ones(images[0].shape)*127 #make it medium gray if there is no variation
 
 		normalized_images = normalized_images.astype(np.uint8)
 		normalized_images = map(lambda image: cv2.cvtColor(image, cv2.COLOR_GRAY2RGB), normalized_images)
